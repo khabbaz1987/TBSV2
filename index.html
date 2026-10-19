@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2c3e50">
+<link rel="apple-touch-icon" href="icon-192.png">
+    <title>Tableau de Bord Stratégique MEN - TBS</title>
+    
+    <!-- Importation des bibliothèques externes -->
+    <!-- SheetJS pour lire les fichiers Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js pour générer les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+	
+	/* Couleurs institutionnelles officielles */
+:root {
+    --rouge-maroc: #C1272D;
+    --vert-maroc: #006233;
+    --texte-sombre: #2c3e50;
+}
+/* Bandeau tricolore/bicolore fixé en haut de page */
+body::before {
+    content: "";
+    display: block;
+    height: 5px;
+    width: 100%;
+    background: linear-gradient(90deg, var(--rouge-maroc) 0% 50%, var(--vert-maroc) 50% 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+}
+
+/* Décalage du corps de page pour ne pas chevaucher la bande */
+body {
+    margin-top: 5px;
+}
+/* En-tête institutionnel */
+.header-section {
+    margin-bottom: 30px;
+    padding: 25px 20px;
+    text-align: center;
+    background-color: #ffffff;
+    border-bottom: 3px solid var(--vert-maroc); /* Rappel Vert institutionnel */
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.header-section h1 {
+    color: var(--texte-sombre);
+    font-size: 1.8rem;
+    margin-top: 15px;
+}
+
+/* Zone de dépôt du fichier Excel */
+input[type="file"] {
+    margin: 20px auto;
+    padding: 15px;
+    border: 2px dashed var(--rouge-maroc); /* Bordure pointillée Rouge officiel */
+    background-color: rgba(193, 39, 45, 0.02);
+    border-radius: 8px;
+    display: block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+input[type="file"]:hover {
+    background-color: rgba(193, 39, 45, 0.06);
+    border-color: var(--rouge-maroc);
+}
+	/* Style de la zone d'en-tête */
+.header-section {
+    margin-bottom: 30px;
+    text-align: center;
+    border-bottom: 2px solid #eef2f5;
+    padding-bottom: 20px;
+}
+
+/* Style spécifique pour le logo */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+#logo-men {
+    max-width: 320px; /* Taille optimale pour ordinateur */
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Adaptation pour les téléphones portables (Responsiveness) */
+@media (max-width: 600px) {
+    #logo-men {
+        max-width: 80% !important; /* Rétrécit le logo sur petit écran */
+    }
+    
+    .header-section h1 {
+        font-size: 1.5rem; /* Ajuste la taille du titre */
+    }
+}
+        /* Styles généraux et réinitialisation */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 20px; 
+            background-color: #f4f7f6; 
+            margin: 0;
+            color: #333;
+        }
+        
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* En-tête */
+        .header-section { 
+            margin-bottom: 30px; 
+            text-align: center; 
+        }
+        .header-section h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .header-section p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        /* Zone de téléchargement du fichier */
+        .upload-area {
+            background-color: #f8fafc;
+            border: 2px dashed #3b82f6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            background-color: #eff6ff;
+        }
+        input[type="file"] { 
+            display: inline-block; 
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        /* Zone de contrôle (Menu déroulant) */
+        #zone_controles {
+            display: none; /* Caché par défaut */
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            border-left: 5px solid #3b82f6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        #zone_controles label {
+            font-weight: 600;
+            margin-right: 15px;
+            color: #1e293b;
+        }
+        select {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 15px;
+            outline: none;
+            min-width: 250px;
+            background-color: white;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Conteneur du graphique */
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 900px; 
+            margin: 0 auto 40px auto; 
+            padding: 20px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        /* Tableau de données */
+        .table-section-title {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .table-wrapper { 
+            overflow-x: auto; 
+            max-height: 500px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 14px; 
+            white-space: nowrap;
+        }
+        th, td { 
+            padding: 12px 16px; 
+            border: 1px solid #e2e8f0; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #1e293b; 
+            color: white; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10;
+            font-weight: 500;
+        }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        tr:hover { background-color: #f1f5f9; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            select { width: 100%; margin-top: 10px; }
+        }
+		/* Style de la bannière flottante d'installation */
+.install-banner {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #2c3e50;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 1000;
+    font-size: 14px;
+    max-width: 90%;
+}
+.install-banner button {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+/* Style de la modale iOS */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 90%;
+    width: 360px;
+    position: relative;
+    color: #333;
+}
+.close-modal {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+}
+.ios-steps { margin: 15px 0; padding-left: 20px; text-align: left; }
+.ios-steps li { margin-bottom: 10px; line-height: 1.4; }
+.btn-primary {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+/* Style du bouton d'impression sur l'écran */
+.btn-print {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+.btn-print:hover {
+    background-color: #219150;
+}
+
+/* ==========================================
+   RÈGLES D'IMPRESSION (PAPIER / PDF)
+   ========================================== */
+@media print {
+    /* 1. Masquer les menus, boutons, champs de fichier et bannières PWA */
+    input[type="file"],
+    #zone_controles,
+    .btn-imprimer-container,
+    .install-banner,
+    .modal-overlay {
+        display: none !important;
+    }
+
+    /* 2. Optimiser la page pour l'impression */
+    body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body::before {
+        display: none !important; /* Masquer la ligne bicolore supérieure */
+    }
+
+    .container {
+        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 3. Déplier entièrement le tableau (supprimer la barre de défilement) */
+    .table-wrapper {
+        max-height: none !important;
+        overflow: visible !important;
+        border: none !important;
+    }
+
+    /* 4. Gestion des sauts de page pour le graphique */
+    .chart-container {
+        max-width: 100% !important;
+        page-break-inside: avoid; /* Évite de couper le graphique au milieu */
+        margin-bottom: 30px !important;
+    }
+
+    table {
+        width: 100% !important;
+        font-size: 10pt !important;
+        border-collapse: collapse !important;
+    }
+
+    th, td {
+        border: 1px solid #444 !important;
+        padding: 6px 8px !important;
+    }
+
+    th {
+        background-color: #2c3e50 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Section d'en-tête et chargement -->
+        <div class="header-section">
+    <!-- Conteneur pour le logo officiel -->
+    <div class="logo-container">
+        <!-- Vous pouvez remplacer ce lien par "logo.png" si vous avez le fichier dans votre dossier -->
+        <img src="C:\Users\khabb\Desktop\TBS V2\icon-192.png" 
+             alt="Logo DIRECTION PROVINCIAL AIN CHOCK" 
+             id="logo-men" 
+             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+        
+        <!-- Fallback au cas où l'image ne charge pas (pas d'internet ou fichier manquant) -->
+        <div id="logo-fallback" style="display: none; font-weight: bold; color: #2c3e50; font-size: 1.2rem; border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 15px;">
+            🇲🇦 ROYAUME DU MAROC <br>
+            <span style="font-size: 0.95rem; color: #555;">Direction provinciale AIN CHOCK</span>
+        </div>
+    </div>
+	<h1>
+    <img src="https://flagcdn.com/w40/ma.png" 
+         alt="Drapeau du Maroc" 
+         style="height: 28px; vertical-align: sub; margin-right: 8px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.2);">
+    Tableau de Bord Stratégique (TBS) - AIN CHOCK
+</h1>
+
+    <h1>📊 </h1>
+    <p>Chargez un export Excel pour visualiser les indicateurs instantanément.</p>
+    
+    <input type="file" id="upload_excel" accept=".xlsx, .xls" />
+</div>
+        </div>
+        
+        <!-- Zone de contrôle (Menu déroulant dynamique) -->
+        <div id="zone_controles">
+            <label for="select_colonne">🎯 Analyser la répartition par :</label>
+            <select id="select_colonne">
+                <!-- Les options seront injectées ici par JavaScript -->
+            </select>
+        </div>
+        
+        <!-- Zone d'affichage du graphique -->
+        <div class="chart-container" id="conteneur_graphique" style="display: none;">
+            <canvas id="monGraphique"></canvas>
+        </div>
+
+        <!-- Zone d'affichage du tableau -->
+        <div id="conteneur_tableau" style="display: none;">
+            <h2 class="table-section-title">Données brutes de l'export</h2>
+            <div class="table-wrapper">
+                <table id="tableau_donnees">
+                    <!-- Les en-têtes et lignes seront injectés ici par JavaScript -->
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let graphiqueInstance = null;
+        let donneesExcelGlobales = []; // Stocke les données JSON en mémoire
+
+        // 1. Écouteur d'événement pour le chargement du fichier Excel
+        document.getElementById('upload_excel').addEventListener('change', function(evenement) {
+            const fichier = evenement.target.files[0];
+            if (!fichier) return;
+
+            const lecteur = new FileReader();
+
+            lecteur.onload = function(e) {
+                try {
+                    const donneesBrutes = new Uint8Array(e.target.result);
+                    const classeur = XLSX.read(donneesBrutes, { type: 'array' });
+                    
+                    // Sélectionner la première feuille du classeur
+                    const nomPremiereFeuille = classeur.SheetNames[0];
+                    const feuille = classeur.Sheets[nomPremiereFeuille];
+
+                    /* 
+                     * ⚠️ IMPORTANT POUR LES EXPORTS TBS / MASSAR :
+                     * Si le fichier Excel généré par le ministère contient un en-tête de 
+                     * présentation (ex: "Royaume du Maroc", date, etc.) sur les 3 premières lignes, 
+                     * les vrais noms de colonnes se trouvent plus bas.
+                     * Dans ce cas, remplacez `range: 0` par `range: 3` (ou 4) ci-dessous 
+                     * pour ignorer ces lignes d'en-tête officielles.
+                     */
+                    const donneesJSON = XLSX.utils.sheet_to_json(feuille, { defval: "", range: 0 });
+
+                    if (donneesJSON.length === 0) {
+                        alert("Le fichier semble vide ou n'a pas pu être lu correctement.");
+                        return;
+                    }
+
+                    // Sauvegarder les données pour les réutiliser sans recharger le fichier
+                    donneesExcelGlobales = donneesJSON;
+
+                    // Afficher les éléments d'interface cachés
+                    document.getElementById('conteneur_tableau').style.display = 'block';
+                    document.getElementById('conteneur_graphique').style.display = 'block';
+
+                    // Lancer les fonctions d'interface
+                    afficherTableau(donneesExcelGlobales);
+                    initialiserMenuDeroulant(donneesExcelGlobales);
+                    
+                    // Dessiner le graphique initial avec la première colonne trouvée
+                    const entetes = Object.keys(donneesExcelGlobales[0]);
+                    const premiereColonne = entetes[0];
+                    creerGraphique(premiereColonne);
+
+                } catch (erreur) {
+                    console.error("Erreur lors de la lecture du fichier Excel :", erreur);
+                    alert("Une erreur est survenue lors de l'analyse du fichier Excel. Vérifiez qu'il s'agit bien d'un fichier valide.");
+                }
+            };
+
+            // Lire le fichier comme un tableau d'octets (ArrayBuffer)
+            lecteur.readAsArrayBuffer(fichier);
+        });
+
+        // 2. Fonction pour initialiser le menu déroulant avec les noms de colonnes
+        function initialiserMenuDeroulant(donnees) {
+            if (donnees.length === 0) return;
+
+            const selectElement = document.getElementById('select_colonne');
+            const zoneControles = document.getElementById('zone_controles');
+            const entetes = Object.keys(donnees[0]);
+
+            // Vider les options existantes (en cas de rechargement d'un autre fichier)
+            selectElement.innerHTML = '';
+
+            // Créer une balise <option> pour chaque colonne
+            entetes.forEach(entete => {
+                // On ignore les colonnes sans nom (souvent générées par des cellules vides dans Excel)
+                if (entete.trim() !== "" && !entete.startsWith("__EMPTY")) {
+                    const option = document.createElement('option');
+                    option.value = entete;
+                    option.textContent = entete;
+                    selectElement.appendChild(option);
+                }
+            });
+
+            // Rendre la zone de contrôle visible
+            zoneControles.style.display = 'block';
+
+            // Écouter les changements dans le menu déroulant
+            // Retirer l'ancien écouteur s'il y en avait un pour éviter les doublons
+            const nouveauSelect = selectElement.cloneNode(true);
+            selectElement.parentNode.replaceChild(nouveauSelect, selectElement);
+            
+            nouveauSelect.addEventListener('change', function(evenement) {
+                const colonneChoisie = evenement.target.value;
+                creerGraphique(colonneChoisie); // Mettre à jour le graphique
+            });
+        }
+
+        // 3. Fonction pour générer le tableau de données HTML
+        function afficherTableau(donnees) {
+            const tableau = document.getElementById('tableau_donnees');
+            tableau.innerHTML = ''; 
+
+            const entetes = Object.keys(donnees[0]);
+            
+            // Construction de l'en-tête (<thead>)
+            let thead = '<thead><tr>';
+            entetes.forEach(entete => {
+                thead += `<th>${entete}</th>`;
+            });
+            thead += '</tr></thead>';
+
+            // Construction du corps du tableau (<tbody>)
+            let tbody = '<tbody>';
+            donnees.forEach(ligne => {
+                tbody += '<tr>';
+                entetes.forEach(entete => {
+                    tbody += `<td>${ligne[entete]}</td>`;
+                });
+                tbody += '</tr>';
+            });
+            tbody += '</tbody>';
+
+            // Injection dans le DOM
+            tableau.innerHTML = thead + tbody;
+        }
+
+        // 4. Fonction pour générer et mettre à jour le graphique Chart.js
+        function creerGraphique(nomColonneCategorie) {
+            if (donneesExcelGlobales.length === 0) return;
+
+            // Préparation et aggrégation des données (Comptage des occurrences)
+            const donneesGroupes = {};
+            
+            donneesExcelGlobales.forEach(ligne => {
+                const categorie = ligne[nomColonneCategorie];
+                
+                // On ignore les valeurs vides, nulles ou indéfinies pour un graphique propre
+                if (categorie !== undefined && categorie !== null && categorie !== "") {
+                    // On convertit en chaîne de caractères au cas où ce soit des nombres ou des dates
+                    const nomCategorie = String(categorie).trim();
+                    donneesGroupes[nomCategorie] = (donneesGroupes[nomCategorie] || 0) + 1;
+                }
+            });
+
+            // Trier les données pour le graphique (Optionnel: Tri par ordre décroissant)
+            const clesTriees = Object.keys(donneesGroupes).sort((a, b) => donneesGroupes[b] - donneesGroupes[a]);
+            const etiquettes = clesTriees;
+            const valeurs = clesTriees.map(cle => donneesGroupes[cle]);
+
+            const ctx = document.getElementById('monGraphique').getContext('2d');
+            
+            // Si un graphique existe déjà sur ce canvas, il faut le détruire avant d'en recréer un
+            if (graphiqueInstance) {
+                graphiqueInstance.destroy();
+            }
+
+            // Génération du nouveau graphique
+            graphiqueInstance = new Chart(ctx, {
+                type: 'bar', // Type de graphique (bar, pie, line, doughnut)
+                data: {
+                    labels: etiquettes,
+                    datasets: [{
+                        label: `Nombre d'éléments par : ${nomColonneCategorie}`,
+                        data: valeurs,
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)', // Bleu Tailwind (blue-500)
+                        borderColor: 'rgba(37, 99, 235, 1)',      // Bleu foncé Tailwind (blue-600)
+                        borderWidth: 1,
+                        borderRadius: 6, // Coins arrondis pour les barres
+                        hoverBackgroundColor: 'rgba(37, 99, 235, 0.9)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Permet au graphique de s'adapter à la hauteur du conteneur
+                    plugins: {
+                        legend: { 
+                            position: 'top',
+                            labels: {
+                                font: { family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: `Analyse détaillée de l'indicateur : ${nomColonneCategorie}`,
+                            font: { size: 16, family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" },
+                            padding: { top: 10, bottom: 20 }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { 
+                                stepSize: 1, // Évite les nombres décimaux sur l'axe Y si on compte des entités
+                                font: { family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }
+                            },
+                            grid: {
+                                color: '#f1f5f9'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif" }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Ajuster la hauteur du canvas pour qu'il soit bien visible
+            document.getElementById('monGraphique').style.height = '400px';
+        }
+    </script>
+	<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+            .then(registration => console.log('Service Worker activé'))
+            .catch(erreur => console.log('Erreur Service Worker', erreur));
+        });
+    }
+	document.addEventListener('DOMContentLoaded', () => {
+    const btnImprimer = document.getElementById('btn-imprimer');
+    if (btnImprimer) {
+        btnImprimer.addEventListener('click', () => {
+            window.print();
+        });
+    }
+});
+</script>
+<script>
+let deferredPrompt = null;
+
+// Détecter si l'application tourne déjà en mode installé (standalone)
+function estEnModeStandalone() {
+    return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone === true);
+}
+
+// Détecter si l'utilisateur est sur iOS (iPhone / iPad)
+function estIOS() {
+    const ua = window.navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(ua);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Si l'application est déjà installée sur le téléphone, on ne montre pas la bannière
+    if (estEnModeStandalone()) return;
+
+    const banner = document.getElementById('pwa-install-banner');
+    const btnInstaller = document.getElementById('btn-installer');
+    const iosModal = document.getElementById('ios-modal');
+    const btnCloseModal = document.getElementById('close-ios-modal');
+    const btnCompris = document.getElementById('btn-compris');
+
+    // 1. Android / Chrome / Edge : Capture de l'événement d'installation native
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        banner.style.display = 'flex';
+    });
+
+    // 2. iOS Safari : Affichage de la bannière spécifique à iOS
+    if (estIOS()) {
+        banner.style.display = 'flex';
+    }
+
+    // Action lors du clic sur le bouton "Installer"
+    btnInstaller.addEventListener('click', () => {
+        if (deferredPrompt) {
+            // Sur Android / Chrome : Déclenche l'invite d'installation système
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    banner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            });
+        } else if (estIOS()) {
+            // Sur iOS : Affiche la modale d'instructions
+            iosModal.style.display = 'flex';
+        }
+    });
+
+    // Fermeture de la modale iOS
+    const fermerModal = () => { iosModal.style.display = 'none'; };
+    if (btnCloseModal) btnCloseModal.addEventListener('click', fermerModal);
+    if (btnCompris) btnCompris.addEventListener('click', fermerModal);
+});</script>
+<!-- Bannière / Bouton d'installation (masqué par défaut) -->
+<div id="pwa-install-banner" class="install-banner" style="display: none;">
+    <span>📲 Installer l'application TBS sur votre appareil</span>
+    <button id="btn-installer">Installer</button>
+</div>
+
+<!-- Modale d'instructions spécifiques à iOS -->
+<div id="ios-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal" id="close-ios-modal">&times;</span>
+        <h3>Installation sur iPhone / iPad</h3>
+        <p>Safari ne permet pas l'installation automatique. Suivez ces 3 étapes simples :</p>
+        <ol class="ios-steps">
+            <li>Appuyez sur le bouton <strong>Partager</strong> <span style="font-size: 1.2em;">⎘</span> (en bas de votre écran Safari).</li>
+            <li>Faites défiler le menu vers le bas et sélectionnez <strong>Sur l'écran d'accueil</strong> ➕.</li>
+            <li>Cliquez sur <strong>Ajouter</strong> en haut à droite.</li>
+        </ol>
+        <button id="btn-compris" class="btn-primary">J'ai compris</button>
+    </div>
+</div>
+<!-- Pied de page institutionnel -->
+<footer class="footer-institutionnel">
+    <div class="footer-content"><center><b>
+        <p class="footer-title">🇲🇦 Royaume du Maroc — Ministère de l'Éducation Nationale, du Préscolaire et des Sports</p>
+        <p class="footer-sub">Direction de la Stratégie, DIRECTION PROVINCIAL AIN CHOCK — Système TBS</p>
+        <p class="footer-date">📅 Date de consultation : <span id="date-courante">---</span></p>
+        <p class="footer-copy">&copy; <span id="annee-courante">2026</span> — Application d'Analyse Stratégique. Données traitées localement.</p>
+    </div>
+</footer>
+<!-- Bouton d'impression -->
+<div class="btn-imprimer-container" style="text-align: center; margin: 25px 0;">
+    <button id="btn-imprimer" class="btn-print">
+        🖨️ Imprimer / Exporter le Rapport PDF
+    </button>
+</div>
+</body>
+</html>
